@@ -2,7 +2,7 @@
 #include "buffer.h"
 #include "view.h"
 int main(int argc, char** argv) {
-	char* targetfile = *(argv + (argc - 1)); // argv[argc - 1];
+	char* targetfile = argv[argc - 1];
 
 	context_t maincontext;
 	buffer_t mainbuffer = buffer_new();
