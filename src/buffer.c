@@ -6,13 +6,14 @@
 
 buffer_t buffer_new() {
 	buffer_t n = {};
-	n.data = malloc(1);
+	n.data = "";
 	return n;
 }
 
 
 
 void buffer_setcontent(buffer_t *b, char *data, long len) {
+	printf("got here");
 	b->length = len;
 	b->data = data;
 	buffer_updatelines(b);
@@ -20,29 +21,37 @@ void buffer_setcontent(buffer_t *b, char *data, long len) {
 
 
 int buffer_loadfile(buffer_t *b, char *path) {
-
+	
 	FILE *fp;
 	fp = fopen(path, "r");
+	
 	if (fp == NULL) {
 		fprintf(stderr, "Error opening file: %s\n", strerror( errno ));
 		return 0;
 	}
+	
 	// Seek to the end of the file
 	fseek(fp, 0, SEEK_END);
 	// Get the size of the file based on that
 	// new location gained from seeking
 	b->length = ftell(fp);
+	
 	// And rewind the file read pointer
 	rewind(fp);
+	
 	// Allocate enough memory for that new data
 	b->data = calloc(b->length + 1, 1);
+	
 	// Read from the file and put it into the buffer
 	fread(b->data, b->length, 1, fp);
+	
 	// content.file = fp;
 	fclose(fp);
+	
 
 	// Convert the buffer's string data into lines that the editor can use.
 	buffer_updatelines(b);
+	
 	return 1;
 }
 
@@ -72,12 +81,16 @@ char* strdup_(const char * s) {
 
 
 void buffer_updatelines(buffer_t *buf) {
+	
 	char** lines = malloc(sizeof(char*));
+	
 	int linecount = 0;
 	char* bufferdata = strdup_(buf->data);
+	
 	char *currentline = strtoke(bufferdata, LINE_DELIM);
+	
 	while(currentline) {
-		lines = (char**)realloc(lines, (linecount + 1) * sizeof(char*));
+		lines = realloc(lines, (linecount + 1) * sizeof(char**));
 		lines[linecount] = strdup_(currentline);
 		currentline = strtoke(NULL, LINE_DELIM);
 		linecount++;
@@ -90,17 +103,23 @@ void buffer_updatelines(buffer_t *buf) {
 // Moves the buffer's lines to the raw string data.
 void buffer_updatedata(buffer_t *buf) {
 	char *data = malloc(sizeof(char));
+
+	
 	data[0] = 0;
 	long totalsize = 0;
+	
 	int ll;
 	int i;
 	for (i = 0; i < buf->linecount; i++) {
 		// The length of the current line
 		ll = strlen(buf->lines[i]);
+		
 		// Increase the total size of the string
 		totalsize += ll;
 		// 
-		data = realloc(data, strlen(data) + ll + strlen(LINE_DELIM));
+		data = realloc(data, strlen(data) + ll + 1);
+		
+		// printf("%s\n", data);
 		
 		strcat(data, buf->lines[i]);
 		strcat(data, "\n");

@@ -1,5 +1,5 @@
 CC = clang
-WARNINGS = -Wall -Werror -Wfloat-equal -Wformat
+WARNINGS = -Wall -Werror -Wfloat-equal -Wformat -g
 CFLAGS = -std=c99
 LDLIBS = -lm -lncurses -lcurses
 

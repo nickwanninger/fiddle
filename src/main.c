@@ -12,6 +12,7 @@
 
 int main(int argc, char** argv) {
 	char* targetfile = argv[argc - 1];
+	
 
 	char *s;
 	while (--argc > 0 && (*++argv)[0] == '-') {
@@ -36,9 +37,11 @@ int main(int argc, char** argv) {
 	context_t ctx;
 	ctx.argv = argv;
 	buffer_t mainbuffer = buffer_new();
+	
 
 	ctx.buffer = &mainbuffer;
 	ctx.filepath = targetfile;
+	
 
 	// Load the file into the buffer if the file is not found, 
 	// set a flag in the context that says the file needs to be
@@ -50,10 +53,12 @@ int main(int argc, char** argv) {
 		// The file was found, so a new file doesnt need to be created.
 		ctx.isNewFile = false;
 	}
+	
+	
 	ctx.y = 0;
 	ctx.x = 0;
 	// Set the second line to some new value
-	mainbuffer.lines[0] = "hello world";
+	// mainbuffer.lines[0] = "hello world";
 	// Compile the lines back into one single string
 	buffer_updatedata(&mainbuffer);
 
