@@ -35,12 +35,14 @@ int main(int argc, char** argv) {
 	}
 
 	context_t ctx;
-	ctx.argv = argv;
+	
 	buffer_t mainbuffer = buffer_new();
 	
-
+	ctx.argv = argv;
 	ctx.buffer = &mainbuffer;
 	ctx.filepath = targetfile;
+	ctx.y = 0;
+	ctx.x = 0;
 	
 
 	// Load the file into the buffer if the file is not found, 
@@ -55,8 +57,7 @@ int main(int argc, char** argv) {
 	}
 	
 	
-	ctx.y = 0;
-	ctx.x = 0;
+	
 	// Set the second line to some new value
 	// mainbuffer.lines[0] = "hello world";
 	// Compile the lines back into one single string

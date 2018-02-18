@@ -22,10 +22,8 @@ void buffer_setcontent(buffer_t *b, char *data, long len) {
 
 int buffer_loadfile(buffer_t *b, char *path) {
 	
-	FILE *fp;
-	fp = fopen(path, "r");
-	
-	if (fp == NULL) {
+	FILE *fp = fopen(path, "r");
+	if (!fp) {
 		fprintf(stderr, "Error opening file: %s\n", strerror( errno ));
 		return 0;
 	}
@@ -35,29 +33,24 @@ int buffer_loadfile(buffer_t *b, char *path) {
 	// Get the size of the file based on that
 	// new location gained from seeking
 	b->length = ftell(fp);
-	
 	// And rewind the file read pointer
 	rewind(fp);
-	
 	// Allocate enough memory for that new data
 	b->data = calloc(b->length + 1, 1);
-	
 	// Read from the file and put it into the buffer
 	fread(b->data, b->length, 1, fp);
-	
-	// content.file = fp;
 	fclose(fp);
-	
-
 	// Convert the buffer's string data into lines that the editor can use.
 	buffer_updatelines(b);
 	
 	return 1;
 }
 
+
+
 int buffer_writefile(buffer_t *buf, char *path) {
 	FILE *f = fopen(path, "w");
-	if (f == NULL) {
+	if (!f) {
 		return 0;
 	}
 	// Do a last minute update
@@ -69,12 +62,15 @@ int buffer_writefile(buffer_t *buf, char *path) {
 }
 
 
+
 // Implement string dupe, since its kinda non-standard, or something
 char* strdup_(const char * s) {
 	size_t len = 1+strlen(s);
 	char *p = malloc(len);
 	return p ? memcpy(p, s, len) : NULL;
 }
+
+
 
 
 void buffer_updatelines(buffer_t *buf) {
@@ -88,7 +84,7 @@ void buffer_updatelines(buffer_t *buf) {
 	
 	
 	while(currentline) {
-		lines = (char**)realloc(lines, (linecount + 1) * sizeof(char**));
+		lines = realloc(lines, (linecount + 1) * sizeof(char**));
 		lines[linecount] = strdup_(currentline);
 		currentline = strtoke(NULL, LINE_DELIM);
 		linecount++;
@@ -103,22 +99,15 @@ void buffer_updatelines(buffer_t *buf) {
 void buffer_updatedata(buffer_t *buf) {
 	free(buf->data);
 	char *data = malloc(sizeof(char));
-
-	
 	data[0] = 0;
 	long totalsize = 1;
-	
-	int ll;
-	int i;
-	for (i = 0; i < buf->linecount; i++) {
+	int ll = 0;
+	for (int i = 0; i < buf->linecount; i++) {
 		// The length of the current line
 		ll = strlen(buf->lines[i])+1;
-		
 		// Increase the total size of the string
 		totalsize += ll;
-		// 
 		data = realloc(data, totalsize + sizeof "\n");
-
 		strcat(data, buf->lines[i]);
 		strcat(data, "\n");
 	}
@@ -157,8 +146,7 @@ char* strtoke(char *str, const char *delim) {
 // 4 spaces to the right.
 int buffer_getrendercolumn(char *line, int col) {
 	int x = 0;
-	int c;
-	for (c = 0; c < col; c++) {
+	for (int c = 0; c < col; c++) {
 		if (line[c] == 0x09) {
 			x += TAB_WIDTH;
 		} else {
@@ -170,8 +158,7 @@ int buffer_getrendercolumn(char *line, int col) {
 
 int buffer_getcolumnfromrendercolumn(char *line, int rcol) {
 	int x = 0;
-	int c;
-	for (c = 0; c < rcol; c++) {
+	for (int c = 0; c < rcol; c++) {
 		if (line[c] == 0x09) {
 			if (x + TAB_WIDTH > rcol) {
 				return x;
