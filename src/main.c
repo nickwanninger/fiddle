@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <locale.h>
 #include <stdbool.h>
+#include "keys.h"
  
 
 int main(int argc, char** argv) {
@@ -96,9 +97,9 @@ int main(int argc, char** argv) {
 				maincontext.ccol++;
 				break;
 
-			case 0x13:
+			case KEYCODE_SAVE:
 				printf("need to save");
-			case 0x0a:
+			case KEYCODE_NL:
 				maincontext.ccol = 0;
 				maincontext.crow++;
 				break;
