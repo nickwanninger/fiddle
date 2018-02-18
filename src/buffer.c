@@ -41,25 +41,36 @@ int buffer_loadfile(buffer_t *b, char *path) {
 	return 1;
 }
 
+int buffer_writefile(buffer_t *buf, char *path) {
+	FILE *f = fopen(path, "w");
+	if (f == NULL) {
+		return 0;
+	}
 
+	// Do a last minute update
+	buffer_updatedata(buf);
 
-char * strdup(const char * s)
-{
-  size_t len = 1+strlen(s);
-  char *p = malloc(len);
+	fprintf(f, "%s", buf->data);
 
-  return p ? memcpy(p, s, len) : NULL;
+	return 1;
 }
 
 
-
+// Implement string dupe, since its kinda non-standard, or something
+char* strdup(const char * s) {
+	size_t len = 1+strlen(s);
+	char *p = malloc(len);
+	// If p exist, return the coppied data; otherwise, return NULL
+	// We return null in case there is an error in what string was passed
+	// into the function.
+	return p ? memcpy(p, s, len) : NULL;
+}
 
 
 void buffer_updatelines(buffer_t *buf) {
 	char** lines = malloc(sizeof(char*));
 	int linecount = 0;
 	char* bufferdata = strdup(buf->data);
-
 	char *currentline = strtoke(bufferdata, LINE_DELIM);
 	while(currentline) {
 		lines = (char**)realloc(lines, (linecount + 1) * sizeof(char*));
@@ -74,10 +85,25 @@ void buffer_updatelines(buffer_t *buf) {
 
 // Moves the buffer's lines to the raw string data.
 void buffer_updatedata(buffer_t *buf) {
-	buf->data = malloc(1);
-
+	char *data = malloc(sizeof(char));
+	data[0] = 0;
+	long totalsize = 0;
+	int ll;
+	int i;
+	for (i = 0; i < buf->linecount; i++) {
+		// The length of the current line
+		ll = strlen(buf->lines[i]);
+		// Increase the total size of the string
+		totalsize += ll;
+		// 
+		data = realloc(data, strlen(data) + ll + strlen(LINE_DELIM));
+		
+		strcat(data, buf->lines[i]);
+		strcat(data, "\n");
+	}
+	buf->length = totalsize;
+	buf->data = data;
 }
-
 
 
 /* 

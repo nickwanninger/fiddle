@@ -49,14 +49,18 @@ int main(int argc, char** argv) {
 	}
 	maincontext.ccol = 0;
 	maincontext.crow = 0;
-
+	
+	// Build the buffer into lines
 	buffer_updatelines(&mainbuffer);
-	int i;
-	for (i = 0; i < mainbuffer.linecount; i++) {
-		printf("%2d %s\n", i, mainbuffer.lines[i]);
-	}
-	printf("%ld\n", mainbuffer.linecount);
-	return 0;
+	// Set the second line to some new value
+	mainbuffer.lines[0] = "hello world";
+	// Compile the lines back into one single string
+	buffer_updatedata(&mainbuffer);
+
+	// buffer_writefile(&mainbuffer, "out.example");
+
+
+	// return 0;
 	
 	// Initialize the ncurses views and windows
 	viewinit();
@@ -92,15 +96,19 @@ int main(int argc, char** argv) {
 				maincontext.ccol++;
 				break;
 
+			case 0x13:
+				printf("need to save");
 			case 0x0a:
 				maincontext.ccol = 0;
 				maincontext.crow++;
 				break;
 			default:
+
 				if (c >= 32 && c <= 127) {
 					wprintw(codeview, "%c", c);
 					maincontext.ccol++;
 				} else {
+					wprintw(codeview, "%x", c);
 					// The char is not printable, so ring the bell. :)
 					printf("\a");
 				}
