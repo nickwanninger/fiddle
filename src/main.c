@@ -2,6 +2,7 @@
 #include "buffer.h"
 #include "view.h"
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 #include <locale.h>
 #include <stdbool.h>
@@ -31,52 +32,71 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	context_t maincontext;
-	maincontext.argv = argv;
+	context_t ctx;
+	ctx.argv = argv;
 	buffer_t mainbuffer = buffer_new();
 
-	maincontext.buffer = &mainbuffer;
-	maincontext.filepath = targetfile;
+	ctx.buffer = &mainbuffer;
+	ctx.filepath = targetfile;
 
 	// Load the file into the buffer if the file is not found, 
 	// set a flag in the context that says the file needs to be
 	// created
 	if (!buffer_loadfile(&mainbuffer, targetfile)) {
 		// The file was not found, so a file needs to be created.
-		maincontext.isNewFile = true;
+		ctx.isNewFile = true;
 	} else {
 		// The file was found, so a new file doesnt need to be created.
-		maincontext.isNewFile = false;
+		ctx.isNewFile = false;
 	}
-	maincontext.ccol = 0;
-	maincontext.crow = 0;
-	
-	// Build the buffer into lines
-	buffer_updatelines(&mainbuffer);
+	ctx.y = 0;
+	ctx.x = 0;
 	// Set the second line to some new value
 	mainbuffer.lines[0] = "hello world";
 	// Compile the lines back into one single string
 	buffer_updatedata(&mainbuffer);
 
-	// buffer_writefile(&mainbuffer, "out.example");
 
+	// char *test = "		tab";
+
+	// int len = strlen(test);
+	// for (int i = 0; i < len; i++) {
+	// 	char c = test[i];
+	// 	if (c == 0x09) {
+	// 		for (int a = 0; a < 4; a++) {
+	// 			printf("_");
+	// 		}
+	// 	} else {
+	// 		printf("%c", c);
+	// 	}
+	// }
 
 	// return 0;
-	
 	// Initialize the ncurses views and windows
 	viewinit();
 
 	// The variable that will store each key as a user presses it.
 	unsigned int c;
 	while (1) {
+		
+		drawcode(&ctx);
 		refresh();
-		if (maincontext.crow < 0) maincontext.crow = 0;
-		if (maincontext.ccol < 0) maincontext.ccol = 0;
-		if (maincontext.crow >= LINES - 1) maincontext.crow = LINES - 2;
-		if (maincontext.ccol >= COLS) maincontext.ccol = COLS - 1;
-
-		wmove(codeview, maincontext.crow, maincontext.ccol);
+		int row = ctx.y + ctx.scrolloffset;
+		char* currentline = "";
+		if (row < mainbuffer.linecount) {
+			currentline = mainbuffer.lines[row];
+			if (ctx.x >= strlen(currentline)) {
+				ctx.x = strlen(currentline);
+			}
+		} else {
+			ctx.x = 0;
+		}
+		
+		int rendercolumn = buffer_getrendercolumn(currentline, ctx.x);
+		wmove(codeview, ctx.y, rendercolumn);
+		
 		wrefresh(codeview);
+		
 		
 		c = getch();
 
@@ -85,33 +105,44 @@ int main(int argc, char** argv) {
 				viewinit();
 			break;
 			case KEY_UP:
-				maincontext.crow--;
+				if (ctx.y > 0) {
+					ctx.y--;
+				} else if (ctx.y - 1 < 0 && ctx.scrolloffset > 0) {
+					ctx.scrolloffset--;
+				}
+				
 				break;
 			case KEY_DOWN:
-				maincontext.crow++;
+				if (ctx.y + 1 < LINES - 1 && ctx.y + 1 < mainbuffer.linecount) {
+					ctx.y++;
+				} else if (ctx.scrolloffset + ctx.y < mainbuffer.linecount) {
+					ctx.scrolloffset++;
+				}
 				break;
 			case KEY_LEFT:
-				maincontext.ccol--;
+				if (ctx.x - 1 >= 0) {
+					ctx.x--;
+				}
 				break;
 			case KEY_RIGHT:
-				maincontext.ccol++;
+				if (ctx.x + 1 >= 0) {
+					ctx.x++;
+				}
 				break;
 
 			case KEYCODE_SAVE:
-				printf("need to save");
+				buffer_writefile(&mainbuffer, "out.example");
 			case KEYCODE_NL:
-				maincontext.ccol = 0;
-				maincontext.crow++;
+				ctx.x = 0;
+				ctx.y++;
 				break;
 			default:
-
 				if (c >= 32 && c <= 127) {
 					wprintw(codeview, "%c", c);
-					maincontext.ccol++;
+					ctx.x++;
 				} else {
-					wprintw(codeview, "%x", c);
 					// The char is not printable, so ring the bell. :)
-					printf("\a");
+					// printf("\a");
 				}
 				break;
 		}

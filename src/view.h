@@ -11,12 +11,11 @@ WINDOW *infoview;
 int rows, cols;
 
 void viewinit();
-void drawchar(int x, int y, char c);
 void typechar(char c);
 void viewresized();
 
 void infoviewrefresh(context_t c);
-
+void drawcode(context_t *ctx);
 
 
 #endif

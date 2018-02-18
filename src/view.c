@@ -1,4 +1,6 @@
 #include "view.h"
+#include "config.h"
+#include <string.h>
 
 void initcodeview() {
 	codeview = newwin(LINES - 1, COLS, 0, 0);
@@ -32,9 +34,9 @@ void viewinit() {
 	initinfoview();
 }
 
-void drawchar(int x, int y, char c) {
-	mvprintw(y, x ,"%c", c);
-}
+// void drawchar(int x, int y, char c) {
+// 	mvprintw(y, x ,"%c", c);
+// }
 
 
 void infoviewrefresh(context_t c) {
@@ -43,4 +45,36 @@ void infoviewrefresh(context_t c) {
 
 
 void viewresized() {
+}
+
+
+void drawcode(context_t *ctx) {
+	
+	long offset = ctx->scrolloffset;
+	long linecount = ctx->buffer->linecount;
+
+	int i = 0;
+	for (i = 0; i < LINES - 1; i++) {
+		mvprintw(i, 0, "");
+		clrtoeol();
+	}
+
+	int lc = 0;
+	for(i = offset; lc < LINES-1; i++) {
+		if(!(i >= linecount)) {
+			char* line = ctx->buffer->lines[i];
+			int linelen = strlen(ctx->buffer->lines[i]);
+			int x = 0;
+			int c;
+			for (c = 0; c < linelen; c++) {
+				if (line[c] == 0x09) {
+					x += TAB_WIDTH;
+				} else {
+					mvprintw(lc, x++, &line[c]);
+				}
+			}
+		}
+		clrtoeol();
+		lc++;
+	}
 }

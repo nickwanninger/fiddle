@@ -18,18 +18,15 @@ typedef struct {
 	long linecount;
 } buffer_t;
 
-typedef struct {
-	int x;
-	int y;
-} cursor_t;
 
 typedef struct {
 	char *filepath;
 	buffer_t *buffer; // The buffer content (contains the data of the file and the lines.)
-	int ccol; // Cursor Column
-	int crow; // Cursor Row
+	int x; // Cursor Column
+	int y; // Cursor Row
 	char **argv;
 	bool isNewFile;
+	long scrolloffset;
 } context_t;
 
 #endif
