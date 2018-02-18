@@ -1,4 +1,4 @@
-CC = gcc
+CC = clang
 WARNINGS = -Wall -Werror -Wfloat-equal -Wformat
 CFLAGS = -std=c99
 LDLIBS = -lm -lncurses -lcurses
