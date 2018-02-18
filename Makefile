@@ -1,6 +1,6 @@
 CC = gcc
 WARNINGS = -Wall -Werror -Wfloat-equal -Wformat
-CFLAGS = -std=c99 -O3
+CFLAGS = -std=c99 -O3 -g
 LDLIBS = -lm -lncurses
 
 blddir = build

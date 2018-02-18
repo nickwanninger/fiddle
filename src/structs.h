@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 typedef struct {
@@ -13,7 +14,8 @@ typedef struct {
 typedef struct {
 	long length;
 	char *data;
-	line_t *lines;
+	char **lines;
+	long linecount;
 } buffer_t;
 
 typedef struct {
@@ -23,8 +25,11 @@ typedef struct {
 
 typedef struct {
 	char *filepath;
-	buffer_t *buffer;
-	cursor_t cursor;
+	buffer_t *buffer; // The buffer content (contains the data of the file and the lines.)
+	int ccol; // Cursor Column
+	int crow; // Cursor Row
+	char **argv;
+	bool isNewFile;
 } context_t;
 
 #endif
