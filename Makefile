@@ -1,7 +1,7 @@
 CC = gcc
 WARNINGS = -Wall -Werror -Wfloat-equal -Wformat
 CFLAGS = -std=c99
-LDLIBS = -lm -lncurses
+LDLIBS = -lm -lncurses -lcurses
 
 blddir = build
 srcs = $(shell ls src | grep "\.c")
