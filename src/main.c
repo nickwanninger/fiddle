@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include "keys.h"
  
+#include <ncurses.h>
 
 int main(int argc, char** argv) {
 	char* targetfile = argv[argc - 1];

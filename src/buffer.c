@@ -1,6 +1,7 @@
 #include "buffer.h"
 #include <errno.h>
 #include "config.h"
+#include <ncurses.h>
 
 
 buffer_t buffer_new() {

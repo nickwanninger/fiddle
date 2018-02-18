@@ -1,6 +1,7 @@
 #include "view.h"
 #include "config.h"
 #include <string.h>
+#include <ncurses.h>
 
 void initcodeview() {
 	codeview = newwin(LINES - 1, COLS, 0, 0);
