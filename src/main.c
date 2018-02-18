@@ -116,7 +116,6 @@ int main(int argc, char** argv) {
 				} else if (ctx.y - 1 < 0 && ctx.scrolloffset > 0) {
 					ctx.scrolloffset--;
 				}
-				
 				break;
 			case KEY_DOWN:
 				if (ctx.y + 1 < LINES - 1 && ctx.y + 1 < mainbuffer.linecount) {

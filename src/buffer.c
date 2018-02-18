@@ -73,9 +73,6 @@ int buffer_writefile(buffer_t *buf, char *path) {
 char* strdup_(const char * s) {
 	size_t len = 1+strlen(s);
 	char *p = malloc(len);
-	// If p exist, return the coppied data; otherwise, return NULL
-	// We return null in case there is an error in what string was passed
-	// into the function.
 	return p ? memcpy(p, s, len) : NULL;
 }
 
@@ -89,38 +86,39 @@ void buffer_updatelines(buffer_t *buf) {
 	
 	char *currentline = strtoke(bufferdata, LINE_DELIM);
 	
+	
 	while(currentline) {
-		lines = realloc(lines, (linecount + 1) * sizeof(char**));
+		lines = (char**)realloc(lines, (linecount + 1) * sizeof(char**));
 		lines[linecount] = strdup_(currentline);
 		currentline = strtoke(NULL, LINE_DELIM);
 		linecount++;
 	}
 	buf->linecount = linecount;
 	buf->lines = lines;
+	free(bufferdata);
 }
 
 
 // Moves the buffer's lines to the raw string data.
 void buffer_updatedata(buffer_t *buf) {
+	free(buf->data);
 	char *data = malloc(sizeof(char));
 
 	
 	data[0] = 0;
-	long totalsize = 0;
+	long totalsize = 1;
 	
 	int ll;
 	int i;
 	for (i = 0; i < buf->linecount; i++) {
 		// The length of the current line
-		ll = strlen(buf->lines[i]);
+		ll = strlen(buf->lines[i])+1;
 		
 		// Increase the total size of the string
 		totalsize += ll;
 		// 
-		data = realloc(data, strlen(data) + ll + 1);
-		
-		// printf("%s\n", data);
-		
+		data = realloc(data, totalsize + sizeof "\n");
+
 		strcat(data, buf->lines[i]);
 		strcat(data, "\n");
 	}
