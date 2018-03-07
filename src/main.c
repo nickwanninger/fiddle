@@ -1,19 +1,10 @@
 #include "main.h"
 #include "buffer.h"
 #include "view.h"
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <locale.h>
-#include <stdbool.h>
 #include "keys.h"
- 
-#include <ncurses.h>
 
 int main(int argc, char** argv) {
 	char* targetfile = argv[argc - 1];
-	
-
 	char *s;
 	while (--argc > 0 && (*++argv)[0] == '-') {
 		for(s = argv[0]+1; *s != '\0'; s++) {
@@ -33,50 +24,36 @@ int main(int argc, char** argv) {
 		printf("Usage: fiddle <file>\n");
 		return 0;
 	}
-
 	context_t ctx;
-	
+
 	buffer_t mainbuffer = buffer_new();
-	
+
 	ctx.argv = argv;
 	ctx.buffer = &mainbuffer;
 	ctx.filepath = targetfile;
 	ctx.y = 0;
 	ctx.x = 0;
-	
+
 
 	// Load the file into the buffer if the file is not found, 
 	// set a flag in the context that says the file needs to be
 	// created
-	if (!buffer_loadfile(&mainbuffer, targetfile)) {
+	if (!buffer_loadfile(&mainbuffer, ctx.filepath)) {
 		// The file was not found, so a file needs to be created.
+		mainbuffer.data = malloc(0);
 		ctx.isNewFile = true;
 	} else {
 		// The file was found, so a new file doesnt need to be created.
 		ctx.isNewFile = false;
 	}
-	
-	
-	
+
+
+
 	// Set the second line to some new value
 	// mainbuffer.lines[0] = "hello world";
 	// Compile the lines back into one single string
 	buffer_updatedata(&mainbuffer);
 
-
-	// char *test = "		tab";
-
-	// int len = strlen(test);
-	// for (int i = 0; i < len; i++) {
-	// 	char c = test[i];
-	// 	if (c == 0x09) {
-	// 		for (int a = 0; a < 4; a++) {
-	// 			printf("_");
-	// 		}
-	// 	} else {
-	// 		printf("%c", c);
-	// 	}
-	// }
 
 	// return 0;
 	// Initialize the ncurses views and windows
@@ -85,7 +62,7 @@ int main(int argc, char** argv) {
 	// The variable that will store each key as a user presses it.
 	unsigned int c;
 	while (1) {
-		
+		buffer_refresh(&mainbuffer);
 		drawcode(&ctx);
 		refresh();
 		int row = ctx.y + ctx.scrolloffset;
@@ -98,19 +75,19 @@ int main(int argc, char** argv) {
 		} else {
 			ctx.x = 0;
 		}
-		
+
 		int rendercolumn = buffer_getrendercolumn(currentline, ctx.x);
 		wmove(codeview, ctx.y, rendercolumn);
-		
+
 		wrefresh(codeview);
-		
-		
+
+
 		c = getch();
 
 		switch (c) {
 			case KEY_RESIZE:
 				viewinit();
-			break;
+				break;
 			case KEY_UP:
 				if (ctx.y > 0) {
 					ctx.y--;
@@ -137,25 +114,31 @@ int main(int argc, char** argv) {
 				break;
 
 			case KEYCODE_SAVE:
-				buffer_writefile(&mainbuffer, "out.example");
+				buffer_writefile(&mainbuffer, ctx.filepath);
 			case KEYCODE_NL:
 				ctx.x = 0;
-				ctx.y++;
+				// ctx.y++;
+				break;
+			case 0x11: // the quit function
+				endwin();
+				return 0;
 				break;
 			default:
-				if (c >= 32 && c <= 127) {
-					wprintw(codeview, "%c", c);
-					ctx.x++;
-				} else {
-					// The char is not printable, so ring the bell. :)
-					// printf("\a");
-				}
+				handleinput(&ctx, c);
+				// if (c >= 32 && c <= 127) {
+				// 	wprintw(codeview, "%c", c);
+				// 	ctx.x++;
+				// } else {
+				// 	// The char is not printable, so ring the bell. :)
+				// 	// printf("\a");
+				// }
 				break;
 		}
+
 	}
+
 
 	endwin();
 
 	return 0;
-
 }

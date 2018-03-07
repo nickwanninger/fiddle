@@ -1,5 +1,6 @@
 #include "view.h"
 #include "config.h"
+#include <stdint.h>
 #include <string.h>
 #include <ncurses.h>
 
@@ -28,6 +29,8 @@ void viewinit() {
 	cbreak();
 	noecho();
 	keypad(stdscr, true);
+	nonl();
+	raw();
 	
 	start_color();
 	refresh();
@@ -61,11 +64,20 @@ void drawcode(context_t *ctx) {
 			char* line = ctx->buffer->lines[i];
 			int linelen = strlen(ctx->buffer->lines[i]);
 			int x = 0;
-			for (int c = 0; c < linelen; c++) {
-				if (line[c] == 0x09) {
-					x += TAB_WIDTH;
-				} else {
-					mvprintw(lc, x++, &line[c]);
+			// mvprintw(lc, x, "%4d ", i + 1);
+			// x+=5;
+			for (int c = 0; c <= linelen; c++) {
+				switch (line[c]) {
+					case '\t': // tab
+						// mvprintw(lc, x, ">");
+						x += TAB_WIDTH;
+					 break;
+					case '\n':
+						mvprintw(lc, x++, "|");
+						break;
+					default:
+						mvprintw(lc, x++, &line[c]);
+						break;
 				}
 			}
 		}

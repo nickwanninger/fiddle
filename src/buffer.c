@@ -1,7 +1,10 @@
 #include "buffer.h"
+#include "view.h"
+#include "keys.h"
 #include <errno.h>
 #include "config.h"
 #include <ncurses.h>
+
 
 
 buffer_t buffer_new() {
@@ -10,10 +13,7 @@ buffer_t buffer_new() {
 	return n;
 }
 
-
-
 void buffer_setcontent(buffer_t *b, char *data, long len) {
-	printf("got here");
 	b->length = len;
 	b->data = data;
 	buffer_updatelines(b);
@@ -25,6 +25,7 @@ int buffer_loadfile(buffer_t *b, char *path) {
 	FILE *fp = fopen(path, "r");
 	if (!fp) {
 		fprintf(stderr, "Error opening file: %s\n", strerror( errno ));
+		free(fp);
 		return 0;
 	}
 	
@@ -35,6 +36,7 @@ int buffer_loadfile(buffer_t *b, char *path) {
 	b->length = ftell(fp);
 	// And rewind the file read pointer
 	rewind(fp);
+	// free(b->data);
 	// Allocate enough memory for that new data
 	b->data = calloc(b->length + 1, 1);
 	// Read from the file and put it into the buffer
@@ -80,15 +82,16 @@ void buffer_updatelines(buffer_t *buf) {
 	int linecount = 0;
 	char* bufferdata = strdup_(buf->data);
 	
-	char *currentline = strtoke(bufferdata, LINE_DELIM);
-	
-	
+	char *currentline = strtoke(bufferdata, "\n");
 	while(currentline) {
-		lines = realloc(lines, (linecount + 1) * sizeof(char**));
-		lines[linecount] = strdup_(currentline);
-		currentline = strtoke(NULL, LINE_DELIM);
 		linecount++;
+		lines = realloc(lines, linecount * sizeof(char**));
+		lines[linecount - 1] = strdup_(currentline);
+		currentline = strtoke(NULL, "\n");
 	}
+	
+	free(buf->lines);
+	linecount--;
 	buf->linecount = linecount;
 	buf->lines = lines;
 	free(bufferdata);
@@ -107,7 +110,7 @@ void buffer_updatedata(buffer_t *buf) {
 		ll = strlen(buf->lines[i])+1;
 		// Increase the total size of the string
 		totalsize += ll;
-		data = realloc(data, totalsize + sizeof "\n");
+		data = realloc(data, totalsize + sizeof '\n');
 		strcat(data, buf->lines[i]);
 		strcat(data, "\n");
 	}
@@ -116,26 +119,31 @@ void buffer_updatedata(buffer_t *buf) {
 }
 
 
+void buffer_refresh(buffer_t *buf) {
+	buffer_updatedata(buf);
+	buffer_updatelines(buf);
+}
+
 /* 
  * behaves like strtok() except that it returns empty tokens also
  * From: https://stackoverflow.com/a/42315689
  * Thanks, scheff :)
  */
 char* strtoke(char *str, const char *delim) {
-  static char *start = NULL; /* stores string str for consecutive calls */
-  char *token = NULL; /* found token */
-  /* assign new start in case */
-  if (str) start = str;
-  /* check whether text to parse left */
-  if (!start) return NULL;
-  /* remember current start as found token */
-  token = start;
-  /* find next occurrence of delim */
-  start = strpbrk(start, delim);
-  /* replace delim with terminator and move start to follower */
-  if (start) *start++ = '\0';
-  /* done */
-  return token;
+	static char *start = NULL; /* stores string str for consecutive calls */
+	char *token = NULL; /* found token */
+	/* assign new start in case */
+	if (str) start = str;
+	/* check whether text to parse left */
+	if (!start) return NULL;
+	/* remember current start as found token */
+	token = start;
+	/* find next occurrence of delim */
+	start = strpbrk(start, delim);
+	/* replace delim with terminator and move start to follower */
+	if (start) *start++ = '\0';
+	/* done */
+	return token;
 }
 
 
@@ -170,4 +178,41 @@ int buffer_getcolumnfromrendercolumn(char *line, int rcol) {
 		}
 	}
 	return x;
+}
+
+
+void stringinsert(char *str, int pos, char c) {
+	str = realloc(str, strlen(str) + 1); // Inserting a char will require 1 more byte
+	for (int i = strlen(str); i >= pos; i--) {
+		str[i+1] = str[i];
+	}
+	str[pos] = c;
+}
+
+
+void handleinput(context_t *ctx, char input) {
+	int col = ctx->x;
+	int row = ctx->y + ctx->scrolloffset;
+	
+	char* currentline = "";
+	if (row < ctx->buffer->linecount) {
+		currentline = ctx->buffer->lines[row];
+	}
+	switch (input) {
+		case 10: // handle newlines
+			// stringinsert(ctx->buffer->lines[row], col, '\\');
+			// ctx->x++;
+			// stringinsert(ctx->buffer->lines[row], col, 'n');
+			// ctx->x++;
+			stringinsert(ctx->buffer->lines[row], col, LINE_DELIM);
+			ctx->x = 0;
+			ctx->y++;
+			printf("newline\n");
+
+			break;
+		default:
+			stringinsert(ctx->buffer->lines[row], col, input);
+			ctx->x++;
+			break;
+	}
 }
